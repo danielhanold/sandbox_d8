@@ -1,1 +1,0 @@
-[13-Jul-2016 09:17:16 America/New_York] Uncaught PHP Exception Symfony\Component\Routing\Exception\RouteNotFoundException: "Route "search.view_node_search" does not exist." at /private/var/www/sandbox_d8/core/lib/Drupal/Core/Routing/RouteProvider.php line 187

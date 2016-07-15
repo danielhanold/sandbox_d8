@@ -19,8 +19,19 @@ class HelloBlock extends BlockBase implements BlockPluginInterface {
    * {@inheritdoc}
    */
   public function build() {
+    $config = $this->getConfiguration();
+
+    if (!empty($config['name'])) {
+      $name = $config['name'];
+    }
+    else {
+      $name = $this->t('to no one');
+    }
+
     return array(
-      '#markup' => $this->t('Hello, World!'),
+      '#markup' => $this->t('Hello @name!', array(
+        '@name' => $name,
+      )),
     );
   }
 
