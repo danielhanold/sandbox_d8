@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * @file
+ * Installation functions for Lorem Ipsum module.
+ */
+
+use Drupal\user\RoleInterface;
+
+/**
+ * Implements hook_install().
+ */
+function loremipsum_install() {
+  user_role_change_permissions(RoleInterface::AUTHENTICATED_ID, array(
+    'generate lorem ipsum' => TRUE,
+  ));
+}
