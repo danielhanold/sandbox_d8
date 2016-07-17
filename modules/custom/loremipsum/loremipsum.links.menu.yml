@@ -1,0 +1,5 @@
+loremipsum.admin:
+  title: 'Lorem Ipsum Settings'
+  description: 'Settings for Lorem Ipsum module'
+  parent: system.admin_config_development
+  route_name: loremipsum.form

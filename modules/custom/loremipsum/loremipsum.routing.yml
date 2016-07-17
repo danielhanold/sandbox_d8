@@ -13,6 +13,6 @@ loremipsum.form:
   path: '/admin/config/development/loremipsum'
   defaults:
     _form: 'Drupal\loremipsum\Form\LoremIpsumForm'
-    _title: 'Lorem ipsum settigs'
+    _title: 'Lorem ipsum settings'
   requirements:
     _permission: 'administer site configuration'
