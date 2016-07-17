@@ -4,6 +4,8 @@ loremipsum.generate:
     _controller: '\Drupal\loremipsum\Controller\LoremIpsumController::generate'
   requirements:
     _permission: 'generate lorem ipsum'
+    paragraphs: \+d
+    phrases: \+d
 
 loremipsum.form:
   path: '/admin/config/development/loremipsum'
