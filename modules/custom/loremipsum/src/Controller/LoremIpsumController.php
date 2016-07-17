@@ -31,11 +31,6 @@ class LoremIpsumController {
 
     $repertory = explode(PHP_EOL, $source_text);
 
-    return array(
-      '#type' => 'markup',
-      '#markup' => 'No Dummy text yet',
-    );
-
     // Generate X paragraphs with up to Y phrases each
     for ($i = 1; $i <= $paragraphs; $i++) {
       $this_paragraph = '';
