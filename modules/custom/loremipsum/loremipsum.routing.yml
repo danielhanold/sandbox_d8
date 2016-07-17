@@ -2,10 +2,12 @@ loremipsum.generate:
   path: '/loremipsum/generate/{paragraphs}/{phrases}'
   defaults:
     _controller: '\Drupal\loremipsum\Controller\LoremIpsumController::generate'
+    paragraphs: 2
+    phrases: 4
   requirements:
     _permission: 'generate lorem ipsum'
-    paragraphs: \+d
-    phrases: \+d
+    paragraphs: \d+
+    phrases: \d+
 
 loremipsum.form:
   path: '/admin/config/development/loremipsum'
