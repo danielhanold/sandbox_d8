@@ -23,7 +23,7 @@ class LoremIpsumBlock extends BlockBase {
   public function build() {
     // Return the form @ Form/LoremIpsumBlockForm.php.
     return \Drupal::formBuilder()
-      ->getForm('Drupal\loremipsum\Form\LoremIpsumBlockForm');
+      ->getForm('Drupal\loremipsum\Form\LoremIpsumFormBlock');
   }
 
   /**

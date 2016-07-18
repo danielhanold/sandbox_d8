@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\loremipsum\Form\BlockFormController.
+ * Contains \Drupal\loremipsum\Form\LoremIpsumFormBlock.
  */
 
 namespace Drupal\loremipsum\Form;
@@ -14,13 +14,13 @@ use Drupal\Core\Url;
 /**
  * Lorem Ipsum block form.
  */
-class LoremIpsumBlockForm extends FormBase {
+class LoremIpsumFormBlock extends FormBase {
 
   /**
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'loremipsum_block_form';
+    return 'loremipsum_form_block';
   }
 
   /**
