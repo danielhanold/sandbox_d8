@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * Contains push_notifications.module functionality.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function push_notifications_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the push_notifications module.
+    case 'help.page.push_notifications':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Push notification functionality for iPhone and Android') . '</p>';
+      return $output;
+
+    default:
+  }
+}
