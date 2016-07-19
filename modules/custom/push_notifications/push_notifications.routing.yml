@@ -1,0 +1,11 @@
+
+push_notifications.push_notifications_config_form:
+  path: 'admin/config/services/push_notifications/configuration'
+  defaults:
+    _form: '\Drupal\push_notifications\Form\PushNotificationsConfigForm'
+    _title: 'PushNotificationsConfigForm'
+  requirements:
+    _permission: 'access administration pages'
+  options:
+    _admin_route: TRUE
+
