@@ -1,11 +1,1 @@
-apns_host: 'gateway.push.apple.com'
-apns_certificate_random: ''
-apns_certificate_base_name: 'apns-production'
-apns_notification_sound: 'default'
-apns_query_feedback_service: TRUE
-apns_stream_context_limit: 1
-apns_environment: 0
-apns_passphrase: ''
-apns_certificate_folder: ''
 set_entrust_certificate: FALSE
-gcm_api_key: ''

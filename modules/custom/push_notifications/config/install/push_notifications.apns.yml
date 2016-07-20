@@ -1,0 +1,9 @@
+host: 'gateway.push.apple.com'
+certificate_random: ''
+certificate_base_name: 'apns-production'
+notification_sound: 'default'
+query_feedback_service: TRUE
+stream_context_limit: 1
+environment: 0
+passphrase: ''
+certificate_folder: ''
