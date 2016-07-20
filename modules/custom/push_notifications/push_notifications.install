@@ -1,0 +1,61 @@
+<?php
+
+/**
+ * @file
+ * Install files for Push Notifications module.
+ */
+
+/**
+ * Implements hook_field_schema().
+ */
+function push_notifications_schema() {
+  $schema = array();
+
+  $schema['push_notifications_tokens'] = array(
+    'description' => 'Stores device tokens',
+    'fields' => array(
+      'id' => array(
+        'description' => t('Push Notification auto-increment ID.'),
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'token' => array(
+        'description' => 'Device Token',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'User ID',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'Device Type (iPhone, Android)',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'timestamp' => array(
+        'description' => 'Timestamp token was added',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'language' => array(
+        'description' => 'Language',
+        'type' => 'varchar',
+        'length' => 11,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'timestamp' => array('timestamp'),
+      'token' => array('token'),
+      'type' => array('type'),
+      'language' => array('language'),
+      'token_uid' => array('token', 'uid'),
+    ),
+  );
+
+  return $schema;
+}
