@@ -6,6 +6,8 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
 
 /**
  * Implements hook_help().
@@ -14,11 +16,16 @@ function push_notifications_help($route_name, RouteMatchInterface $route_match) 
   switch ($route_name) {
     // Main module help for the push_notifications module.
     case 'help.page.push_notifications':
+      $doc_url = Url::fromUri('https://www.drupal.org/node/2718063', array(
+        'attributes' => array(
+          'target' => '_blank',
+        ),
+      ));
+      $doc_link = Link::fromTextAndUrl('Book admin', $doc_url);
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('Push notification functionality for iPhone and Android') . '</p>';
+      $output .= '<p>' . t('Push notification functionality for iPhone and Android.') . '</p>';
+      $output .= '<p>' . t('The full documentation is available online: @doc_link.', array('@doc_link' => $doc_link->toString())) . '</p>';
       return $output;
-
-    default:
   }
 }
