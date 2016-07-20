@@ -3,7 +3,7 @@ push_notifications.push_notifications_config_form:
   path: 'admin/config/services/push_notifications/configuration'
   defaults:
     _form: '\Drupal\push_notifications\Form\PushNotificationsConfigForm'
-    _title: 'Push Notifications Configuration'
+    _title: 'Push Notifications'
   requirements:
     _permission: 'access administration pages'
   options:
