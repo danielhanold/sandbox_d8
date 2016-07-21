@@ -10,6 +10,38 @@ use Drupal\Core\Link;
 use Drupal\Core\Url;
 
 /**
+ * OS device types IDs.
+ */
+const PUSH_NOTIFICATIONS_TYPE_ID_IOS = 0;
+const PUSH_NOTIFICATIONS_TYPE_ID_ANDROID = 1;
+
+/**
+ * APNS notification server port.
+ */
+const PUSH_NOTIFICATIONS_APNS_PORT = 2195;
+
+/**
+ * APNS feedback host.
+ */
+const PUSH_NOTIFICATIONS_APNS_FEEDBACK_HOST = 'feedback.push.apple.com';
+
+/**
+ * APNS feedback port.
+ */
+const PUSH_NOTIFICATIONS_APNS_FEEDBACK_PORT = 2196;
+
+/**
+ * APNS size limit for individual payload, in bytes.
+ */
+const PUSH_NOTIFICATIONS_APNS_PAYLOAD_SIZE_LIMIT = 2048;
+
+/**
+ * GCM notification post URL.
+ */
+const PUSH_NOTIFICATIONS_GCM_SERVER_POST_URL = 'https://android.googleapis.com/gcm/send';
+
+
+/**
  * Implements hook_help().
  */
 function push_notifications_help($route_name, RouteMatchInterface $route_match) {
