@@ -74,3 +74,244 @@ function push_notifications_set_random_certificate_string() {
   $config->set('certificate_random', 'push_notifications_apns_certificate_random' . '-' . $random_string);
   $config->save();
 }
+
+/**
+ * Determine if this user has already stored a token
+ * in the database. The same device token can be
+ * registered for multiple users, because multiple
+ * users can login from the same device.
+ *
+ * @param $token
+ *   Device Token.
+ * @param $uid
+ *   User ID.
+ * @param $exclude
+ *   Set this to true to find (at least one) other user(s) who have this
+ *   token stored. Optional, defaults to false.
+ *
+ * @return
+ *   User ID of token, if found.
+ */
+function push_notifications_find_token($token = '', $uid = '', $exclude = FALSE) {
+  if ($token == '') {
+    return FALSE;
+  }
+
+  $query = db_select('push_notifications_tokens', 'pnt');
+  $query->fields('pnt', array('token'));
+  $query->condition('pnt.token', $token);
+  if ($exclude) {
+    $query->condition('pnt.uid', $uid, '!=');
+    $query->range(0, 1);
+  }
+  else {
+    $query->condition('pnt.uid', $uid);
+  }
+
+  $result = $query->execute();
+  return $result->fetchField();
+}
+
+
+/**
+ * Store a token in the database.
+ * Removes all spaces in the token.
+ *
+ * @param string $token Device token.
+ * @param int $type_id Device Type ID.
+ * @param int $uid User ID.
+ * @param string $language Language that this token is registered for, optional.
+ *
+ * @return
+ *   Failure to write a record will return FALSE, Otherwise SAVED_NEW.
+ */
+function push_notifications_store_token($token = '', $type_id, $uid, $language = '') {
+  // Let modules modify the token before it is saved to the database.
+  foreach(module_implements('push_notifications_store_token') as $module) {
+    $function = $module . '_push_notifications_store_token';
+    $function($token, $type_id, $uid);
+  }
+
+  // Invoke rules.
+  if (module_exists('rules')) {
+    rules_invoke_event_by_args('push_notifications_before_token_insert', array(
+        'token' => $token,
+        'type_id' => $type_id,
+        'uid' => $uid,
+        'language' => $language,
+      )
+    );
+  }
+
+  if (!is_string($token) || !is_numeric($type_id) || !is_numeric($uid)) {
+    return FALSE;
+  }
+
+  // Default language to site default.
+  if ($language == '') {
+    $default_language = language_default();
+    $language = $default_language->language;
+  }
+
+  // Write record.
+  $table = 'push_notifications_tokens';
+  $record = new stdClass();
+  $record->token = $token;
+  $record->uid = $uid;
+  $record->type = $type_id;
+  $record->language = $language;
+  $record->timestamp = time();
+  $result = drupal_write_record($table, $record);
+
+  // Allow modules to react to the newly created record after creation.
+  foreach(module_implements('push_notifications_post_store_token') as $module) {
+    $function = $module . '_push_notifications_post_store_token';
+    $function($record);
+  }
+
+  // Invoke rules.
+  if (module_exists('rules')) {
+    rules_invoke_event_by_args('push_notifications_after_token_insert', array(
+        'token' => $token,
+        'type_id' => $type_id,
+        'uid' => $uid,
+        'language' => $language,
+        'result' => $result,
+      )
+    );
+  }
+
+  return $result;
+}
+
+
+/**
+ * Determine all recipients from a specific device type.
+ *
+ * @param array $filters Filter option for query. Allows filtering by:
+ *   - Language (key = language)
+ *   - Device type (key = type_id)
+ *   - Account type (key = account_type)
+ * @param $raw
+ *   Boolean, set true to retrieve the raw query results.
+ *
+ * @return mixed Array of results, null if no entries.
+ */
+function push_notifications_get_tokens($filters = array(), $raw = FALSE) {
+  // Validate format of filters argument.
+  if (!is_array($filters)) {
+    return FALSE;
+  }
+
+  // Select all tokens for this type id.
+  $query = db_select('push_notifications_tokens', 'pnt');
+  $query->fields('pnt');
+
+  // Filter by device type, if required.
+  if (array_key_exists('type_id', $filters) ) {
+    $query->condition('pnt.type', $filters['type_id']);
+  }
+
+  // Filter by language, if required.
+  if (array_key_exists('language', $filters) && is_string($filters['language'])) {
+    $query->condition('pnt.language', $filters['language']);
+  }
+
+  // Filter by anonymous vs. authenticated users.
+  if (
+    array_key_exists('account_type', $filters) &&
+    in_array($filters['account_type'], array('anonymous', 'authenticated'))
+  ) {
+    switch ($filters['account_type']) {
+      case 'anonymous':
+        $query->condition('pnt.uid', 0);
+        break;
+      case 'authenticated':
+        $query->condition('pnt.uid', 0, '!=');
+        break;
+    }
+  }
+
+  $result = $query->execute();
+
+  // Return raw result, if needed.
+  if ($raw) {
+    return $result;
+  }
+  // Otherwise, create an array of tokens.
+  else {
+    $tokens = array();
+    foreach ($result as $record) {
+      $tokens[] = $record->token;
+    }
+    return $tokens;
+  }
+}
+
+
+/**
+ * Determine all tokens for a specfic user.
+ *
+ * @param int $uid User ID.
+ * @return array Array of token database records.
+ *
+ */
+function push_notification_get_user_tokens($uid) {
+  if (!is_numeric($uid)) {
+    return FALSE;
+  }
+
+  // Select all tokens for this user.
+  $query = db_select('push_notifications_tokens', 'pnt');
+  $query->fields('pnt');
+  $query->condition('pnt.uid', $uid);
+  $result = $query->execute();
+
+  $tokens = array();
+  foreach ($result as $record) {
+    $tokens[$record->token] = $record;
+  }
+
+  return $tokens;
+}
+
+
+/**
+ * Delete a token.
+ *
+ * @param string $token Device token.
+ * @param int $type_id Type ID.
+ * @return Result of deletion.
+ */
+function push_notifications_purge_token($token = '', $type_id) {
+  if ($token == '' || !is_string($token)) {
+    return FALSE;
+  }
+
+  // Allows other modules to respond to a token being purged.
+  module_invoke_all('push_notifications_purge_token', $token, $type_id);
+
+  // Invoke rules.
+  if (module_exists('rules')) {
+    rules_invoke_event_by_args('push_notifications_before_token_delete', array(
+        'token' => $token,
+        'type_id' => $type_id,
+      )
+    );
+  }
+
+  $query = db_delete('push_notifications_tokens');
+  $query->condition('token', $token);
+  $result = $query->execute();
+
+  // Invoke rules.
+  if (module_exists('rules')) {
+    rules_invoke_event_by_args('push_notifications_after_token_delete', array(
+        'token' => $token,
+        'type_id' => $type_id,
+      )
+    );
+  }
+
+  return $result;
+}
