@@ -169,7 +169,7 @@ function push_notifications_store_token($token = '', $type_id, $uid, $language =
   $implementations = \Drupal::moduleHandler()
     ->getImplementations('push_notifications_post_store_token');
   foreach ($implementations as $module) {
-    $function = $module . 'push_notifications_post_store_token';
+    $function = $module . '_push_notifications_post_store_token';
     $function($token, $type_id, $uid);
   }
 
