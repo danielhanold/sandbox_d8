@@ -1,0 +1,12 @@
+services:
+  push_notifications.alert_dispatcher:
+    class: Drupal\push_notifications\PushNotificationsAlertDispatcher
+  push_notifications.message_sender:
+    class: Drupal\push_notifications\PushNotificationsMessageSender
+    arguments: ['@push_notifications.alert_dispatcher']
+  push_notifications.message_sender_account:
+    class: Drupal\push_notifications\PushNotificationsMessageSenderAccount
+    arguments: ['@push_notifications.alert_dispatcher']
+  push_notifications.message_sender_bulk:
+    class: Drupal\push_notifications\PushNotificationsMessageSenderBulk
+    arguments: ['@push_notifications.alert_dispatcher']
