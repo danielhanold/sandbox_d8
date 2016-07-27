@@ -8,11 +8,12 @@
 namespace Drupal\push_notifications;
 
 use Drupal\Component\Utility\Unicode;
+use Drupal\push_notifications\PushNotificationsAlertDispatcher;
 
 /**
  * Handles sending of alerts.
  */
-abstract class PushNotificationsMessageSenderBase{
+class PushNotificationsMessageSenderBase{
 
   /**
    * The message that will be used in the payload.
@@ -36,9 +37,20 @@ abstract class PushNotificationsMessageSenderBase{
   protected $tokens = array();
 
   /**
+   * Alert Dispatcher.
+   *
+   * @var object $dispatcher
+   */
+  private $dispatcher;
+
+  /**
    * Constructor.
+   *
+   * @param $dispatcher PushNotificationsAlertDispatcher
    */
   protected function __construct() {
+    $dispatcher = \Drupal::service('push_notifications.alert_dispatcher');
+    $this->dispatcher = $dispatcher;
     $this->setTokens();
   }
 
@@ -46,12 +58,13 @@ abstract class PushNotificationsMessageSenderBase{
    * Set the list of tokens for this target. Needs to be an associative
    * array of user tokens with the token as the array key.
    */
-  abstract public function setTokens();
+  //abstract public function setTokens();
 
   /**
    * Setter function for message.
    *
    * @param string $message Message to send.
+   * @throws \Exception Message needs to be a string.
    */
   public function setMessage($message) {
     if (!is_string($message)) {
@@ -80,7 +93,7 @@ abstract class PushNotificationsMessageSenderBase{
   /**
    * Dispatch an alert.
    */
-  public function dispatchAlert() {
+  public function dispatch() {
     // Verify that message is set.
     if (empty($this->message)) {
       throw new \Exception('Message was not set correctly.');
@@ -92,10 +105,10 @@ abstract class PushNotificationsMessageSenderBase{
       return false;
     }
 
-    // Generate the payload.
-    $this->generatePayload();
-
-    // TODO: Use the alert dispatcher class to send out an alert.
+    // Generate and dispatch payload.
+    $this->dispatcher->setPayload($this->generatePayload());
+    $this->dispatcher->setTokens($this->tokens);
+    $this->dispatcher->sendPayload();
   }
 
 }

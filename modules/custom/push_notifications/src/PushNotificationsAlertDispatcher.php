@@ -24,25 +24,46 @@ class PushNotificationsAlertDispatcher {
 
   /**
    * Constructor.
-   *
-   * @param array $tokens Array of token record objects.
-   * @param array $payload Payload.
    */
-  public function __construct($tokens = array(), $payload = array()) {
-    $this->payload = $payload;
-    $this->tokens = $this->groupTokensByType($tokens);
+  public function __construct() {
+  }
+
+  /**
+   * Send payload.
+   */
+  public function sendPayload() {
+    dpm('Not implemented yet. sadface!');
+    return;
 
     // Send payload to iOS recipients.
-    if (!empty($tokens[PUSH_NOTIFICATIONS_TYPE_ID_IOS])) {
+    if (!empty($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_IOS])) {
       // Convert the payload into the correct format for APNS.
-      $payload_apns = array('aps' => $payload);
-      push_notifications_apns_send_message($tokens[PUSH_NOTIFICATIONS_TYPE_ID_IOS], $payload_apns);
+      $payload_apns = array('aps' => $this->payload);
+      push_notifications_apns_send_message($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_IOS], $payload_apns);
     }
 
     // Send payload to Android recipients.
-    if (!empty($tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID])) {
-      push_notifications_gcm_send_message($tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID], $payload);
+    if (!empty($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID])) {
+      push_notifications_gcm_send_message($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID], $this->payload);
     }
+  }
+
+  /*
+   * Setter function for payload.
+   *
+   * @param mixed $tokens
+   */
+  public function setTokens($tokens) {
+    $this->tokens = $this->groupTokensByType($tokens);
+  }
+
+  /**
+   * Setter method for payload.
+   *
+   * @param mixed $payload
+   */
+  public function setPayload($payload) {
+    $this->payload = $payload;
   }
 
   /**

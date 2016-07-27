@@ -8,6 +8,7 @@
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
+use Drupal\push_notifications\PushNotificationsMessageSenderList;
 
 /**
  * OS device types IDs.
@@ -48,6 +49,10 @@ function push_notifications_help($route_name, RouteMatchInterface $route_match) 
   switch ($route_name) {
     // Main module help for the push_notifications module.
     case 'help.page.push_notifications':
+      $PushHandler = new PushNotificationsMessageSenderList(array(1));
+      $PushHandler->setMessage('This is my test payload.');
+      $PushHandler->dispatch();
+
       $doc_url = Url::fromUri('https://www.drupal.org/node/2718063', array(
         'attributes' => array(
           'target' => '_blank',
