@@ -7,6 +7,8 @@
 
 namespace Drupal\push_notifications;
 
+use Drupal\Component\Utility\Unicode;
+
 /**
  * Handles sending of alerts.
  */
@@ -31,7 +33,7 @@ abstract class PushNotificationsMessageSenderBase{
    *
    * @var array $tokens
    */
-  protected $tokens;
+  protected $tokens = array();
 
   /**
    * Constructor.
@@ -53,7 +55,7 @@ abstract class PushNotificationsMessageSenderBase{
    */
   public function setMessage($message) {
     if (!is_string($message)) {
-      throw new Exception('Message needs to be a string.');
+      throw new \Exception('Message needs to be a string.');
     }
 
     // Allow other modules modify the message before it is sent.
@@ -65,7 +67,7 @@ abstract class PushNotificationsMessageSenderBase{
     }
 
     // Truncate the message so that we don't exceed the limit of APNS.
-    $this->message = truncate_utf8($message, PUSH_NOTIFICATIONS_APNS_PAYLOAD_SIZE_LIMIT, TRUE, TRUE);
+    $this->message = Unicode::truncate($message, PUSH_NOTIFICATIONS_APNS_PAYLOAD_SIZE_LIMIT, TRUE, TRUE);
   }
 
   /**
@@ -81,7 +83,7 @@ abstract class PushNotificationsMessageSenderBase{
   public function dispatchAlert() {
     // Verify that message is set.
     if (empty($this->message)) {
-      throw new Exception('Message was not set correctly.');
+      throw new \Exception('Message was not set correctly.');
     }
 
     // Log message if no tokens are available.
