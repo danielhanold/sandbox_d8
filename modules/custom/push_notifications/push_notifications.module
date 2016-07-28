@@ -49,7 +49,8 @@ function push_notifications_help($route_name, RouteMatchInterface $route_match) 
   switch ($route_name) {
     // Main module help for the push_notifications module.
     case 'help.page.push_notifications':
-      $PushHandler = new PushNotificationsMessageSenderList(array(1));
+      $PushHandler = \Drupal::service('push_notifications.message_sender_list');
+      $PushHandler->setRecipients(array(1));
       $PushHandler->setMessage('This is my test payload.');
       $PushHandler->dispatch();
 

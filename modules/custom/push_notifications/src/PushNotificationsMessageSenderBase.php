@@ -8,12 +8,11 @@
 namespace Drupal\push_notifications;
 
 use Drupal\Component\Utility\Unicode;
-use Drupal\push_notifications\PushNotificationsAlertDispatcher;
 
 /**
  * Handles sending of alerts.
  */
-class PushNotificationsMessageSenderBase{
+abstract class PushNotificationsMessageSenderBase{
 
   /**
    * The message that will be used in the payload.
@@ -41,24 +40,31 @@ class PushNotificationsMessageSenderBase{
    *
    * @var object $dispatcher
    */
-  private $dispatcher;
+  protected $dispatcher;
 
   /**
    * Constructor.
    *
    * @param $dispatcher PushNotificationsAlertDispatcher
    */
-  public function __construct() {
-    $dispatcher = \Drupal::service('push_notifications.alert_dispatcher');
+  public function __construct(PushNotificationsAlertDispatcher $dispatcher) {
+    kint($dispatcher);
     $this->dispatcher = $dispatcher;
-    $this->setTokens();
   }
 
   /**
    * Set the list of tokens for this target. Needs to be an associative
    * array of user tokens with the token as the array key.
    */
-  //abstract public function setTokens();
+  abstract public function setTokens();
+
+  /**
+   * Set recipients.
+   *
+   * @param array $uids
+   *   User IDs.
+   */
+  abstract public function setRecipients($uids);
 
   /**
    * Setter function for message.
@@ -84,13 +90,6 @@ class PushNotificationsMessageSenderBase{
   }
 
   /**
-   * Generate the payload in the correct format for delivery.
-   */
-  protected function generatePayload() {
-    $this->payload = array('alert' => $this->message);
-  }
-
-  /**
    * Dispatch an alert.
    */
   public function dispatch() {
@@ -106,7 +105,7 @@ class PushNotificationsMessageSenderBase{
     }
 
     // Generate and dispatch payload.
-    $this->dispatcher->setPayload($this->generatePayload());
+    $this->dispatcher->setPayload(array('alert' => $this->message));
     $this->dispatcher->setTokens($this->tokens);
     $this->dispatcher->sendPayload();
   }

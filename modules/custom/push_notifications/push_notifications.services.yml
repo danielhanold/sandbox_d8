@@ -3,7 +3,6 @@ services:
     class: Drupal\push_notifications\PushNotificationsAlertDispatcher
   push_notifications.message_sender_base:
     class: Drupal\push_notifications\PushNotificationsMessageSenderBase
-    arguments: ['@push_notifications.alert_dispatcher']
   push_notifications.message_sender_list:
     class: Drupal\push_notifications\PushNotificationsMessageSenderList
-    arguments: ['@push_notifications.message_sender_base']
+    arguments: ['@push_notifications.alert_dispatcher']
