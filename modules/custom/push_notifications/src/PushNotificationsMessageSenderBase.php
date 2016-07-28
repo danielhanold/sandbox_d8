@@ -44,19 +44,15 @@ abstract class PushNotificationsMessageSenderBase{
 
   /**
    * Constructor.
-   *
-   * @param $dispatcher PushNotificationsAlertDispatcher
    */
-  public function __construct(PushNotificationsAlertDispatcher $dispatcher) {
-    kint($dispatcher);
-    $this->dispatcher = $dispatcher;
+  public function __construct() {
   }
 
   /**
    * Set the list of tokens for this target. Needs to be an associative
    * array of user tokens with the token as the array key.
    */
-  abstract public function setTokens();
+  abstract public function generateTokens();
 
   /**
    * Set recipients.
@@ -97,6 +93,9 @@ abstract class PushNotificationsMessageSenderBase{
     if (empty($this->message)) {
       throw new \Exception('Message was not set correctly.');
     }
+
+    // Set tokens.
+    $this->generateTokens();
 
     // Log message if no tokens are available.
     if (empty($this->tokens)) {

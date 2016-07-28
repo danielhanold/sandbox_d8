@@ -7,8 +7,6 @@
 
 namespace Drupal\push_notifications;
 
-use Drupal\push_notifications\PushNotificationsAlertDispatcher;
-
 /**
  * Send a simple message alert to an array of recipients.
  */
@@ -23,20 +21,27 @@ class PushNotificationsMessageSenderList extends PushNotificationsMessageSenderB
 
   /**
    * Constructor.
+   *
+   * @param \Drupal\push_notifications\PushNotificationsAlertDispatcher $dispatcher
+   *   Alert Dispatcher.
    */
   public function __construct(PushNotificationsAlertDispatcher $dispatcher) {
     $this->dispatcher = $dispatcher;
   }
 
+  /**
+   * {@inheritdoc}
+   *
+   * @param array $uids
+   */
   public function setRecipients($uids) {
     $this->uids = $uids;
-    $this->setTokens();
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setTokens() {
+  public function generateTokens() {
     foreach ($this->uids as $uid) {
       $user_tokens = push_notification_get_user_tokens($uid);
       if (!empty($user_tokens)) {
