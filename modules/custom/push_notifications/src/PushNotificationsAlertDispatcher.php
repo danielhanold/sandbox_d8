@@ -23,6 +23,11 @@ class PushNotificationsAlertDispatcher {
   protected $payload;
 
   /**
+   * Android broadcaster.
+   */
+  protected $androidBroadcaster;
+
+  /**
    * Constructor.
    */
   public function __construct() {
@@ -33,6 +38,7 @@ class PushNotificationsAlertDispatcher {
    */
   public function sendPayload() {
     dpm('Not implemented yet. sadface!');
+
     return;
 
     // Send payload to iOS recipients.
@@ -44,7 +50,9 @@ class PushNotificationsAlertDispatcher {
 
     // Send payload to Android recipients.
     if (!empty($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID])) {
-      push_notifications_gcm_send_message($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID], $this->payload);
+      $androidBroadcaster = \Drupal::service('push_notifications.broadcaster_android');
+      $androidBroadcaster->setTokens($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID]);
+      $androidBroadcaster->setPayload($this->payload);
     }
   }
 
