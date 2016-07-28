@@ -48,7 +48,7 @@ class PushNotificationsMessageSenderBase{
    *
    * @param $dispatcher PushNotificationsAlertDispatcher
    */
-  protected function __construct() {
+  public function __construct() {
     $dispatcher = \Drupal::service('push_notifications.alert_dispatcher');
     $this->dispatcher = $dispatcher;
     $this->setTokens();
