@@ -30,6 +30,11 @@ interface PushNotificationsBroadcasterInterface {
   function setPaylod($payload);
 
   /**
+   * Send the broadcast.
+   */
+  function sendBroadcast();
+
+  /**
    * Retrieve results after broadcast was sent.
    *
    * @return array Array of data.

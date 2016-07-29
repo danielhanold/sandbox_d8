@@ -23,11 +23,6 @@ class PushNotificationsAlertDispatcher {
   protected $payload;
 
   /**
-   * Android broadcaster.
-   */
-  protected $androidBroadcaster;
-
-  /**
    * Constructor.
    */
   public function __construct() {
@@ -37,22 +32,22 @@ class PushNotificationsAlertDispatcher {
    * Send payload.
    */
   public function sendPayload() {
-    dpm('Not implemented yet. sadface!');
-
-    return;
-
     // Send payload to iOS recipients.
+    /**
     if (!empty($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_IOS])) {
       // Convert the payload into the correct format for APNS.
       $payload_apns = array('aps' => $this->payload);
       push_notifications_apns_send_message($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_IOS], $payload_apns);
     }
+     */
 
     // Send payload to Android recipients.
     if (!empty($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID])) {
       $androidBroadcaster = \Drupal::service('push_notifications.broadcaster_android');
       $androidBroadcaster->setTokens($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID]);
       $androidBroadcaster->setPayload($this->payload);
+      $results = $androidBroadcaster->getResults();
+      // TODO: Log result message.
     }
   }
 
