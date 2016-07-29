@@ -77,8 +77,27 @@ function push_notifications_set_random_certificate_string() {
 
   // Write random string to variables.
   $config = \Drupal::service('config.factory')->getEditable('push_notifications.apns');
-  $config->set('certificate_random', 'push_notifications_apns_certificate_random' . '-' . $random_string);
+  $config->set('certificate_random', $random_string);
   $config->save();
+}
+
+/**
+ * Get name of random certificate.
+ *
+ * @param string $environment
+ *   Environment name.
+ *
+ * @return string
+ *   Certificate filename.
+ */
+function push_notifications_get_certificate_name($environment = 'development') {
+  $filename = array(
+    'apns',
+    $environment,
+    \Drupal::config('push_notifications.apns')->get('certificate_random'),
+  );
+  return implode('-', $filename) . '.pem';
+
 }
 
 /**
