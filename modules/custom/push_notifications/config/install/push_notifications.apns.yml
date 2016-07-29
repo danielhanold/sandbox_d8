@@ -4,6 +4,6 @@ certificate_base_name: ''
 notification_sound: 'default'
 query_feedback_service: TRUE
 stream_context_limit: 1
-environment: 0
+environment: 'development'
 passphrase: ''
 certificate_folder: ''

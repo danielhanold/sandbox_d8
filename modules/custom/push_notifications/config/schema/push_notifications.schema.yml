@@ -1,11 +1,5 @@
 # Schema for the configuration files of the Push Notifications module.
 push_notifications.settings:
-  type: config_object
-  label: 'Push Notifications Settings'
-  mapping:
-    set_entrust_certificate:
-      type: boolean
-      label: 'Flag indicating if Entrust root certificate should be explicitly loaded'
 
 push_notifications.apns:
   type: config_object
@@ -30,7 +24,7 @@ push_notifications.apns:
       type: integer
       label: 'Maximum number of messages to send per stream context'
     environment:
-      type: integer
+      type: string
       label: 'APNS environment'
     passphrase:
       type: string
@@ -38,6 +32,9 @@ push_notifications.apns:
     certificate_folder:
       type: string
       label: 'Manual directory for APNS certificate'
+    set_entrust_certificate:
+      type: boolean
+      label: 'Flag indicating if Entrust root certificate should be explicitly loaded'
 
 push_notifications.gcm:
   type: config_object
