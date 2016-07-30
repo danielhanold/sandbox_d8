@@ -7,3 +7,4 @@ stream_context_limit: 1
 environment: 'development'
 passphrase: ''
 certificate_folder: ''
+set_entrust_certificate: FALSE

@@ -4,6 +4,7 @@ namespace Drupal\push_notifications\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Component\Utility\Html;
 
 /**
  * Class PushNotificationsConfigForm.
@@ -17,7 +18,8 @@ class PushNotificationsConfigForm extends ConfigFormBase {
    */
   protected function getEditableConfigNames() {
     return [
-      'push_notifications.PushNotificationsConfig',
+      'push_notifications.apns',
+      'push_notifications.gcm',
     ];
   }
 
@@ -64,7 +66,7 @@ class PushNotificationsConfigForm extends ConfigFormBase {
       '#submit' => array('push_notifications_regenerate_certificate_string_submit'),
     );
 
-    $form['apns']['push_notifications_apns_environment'] = array(
+    $form['apns']['apns_environment'] = array(
       '#type' => 'select',
       '#title' => $this->t('APNS Environment'),
       '#description' => $this->t('Select the active APNS Environment. Please note that development certificates do not work with apps released in the Apple app store; production certificates only work with apps released in the app store.'),
@@ -76,7 +78,7 @@ class PushNotificationsConfigForm extends ConfigFormBase {
     );
 
     $stream_context_limit_options = array(1, 5, 10, 25, 50);
-    $form['apns']['stream_context_limit'] = array(
+    $form['apns']['apns_stream_context_limit'] = array(
       '#type' => 'select',
       '#title' => $this->t('Stream Context Limit'),
       '#description' => $this->t('Defines the amount of messages sent per stream limit, i.e. how many notifications are sent per connection created with Apple\'s servers. The higher the limit, the faster the message delivery. If the limit is too high, messages might not get delivered at all. Unclear (to me) what Apple\'s <em>actual</em> limit is.'),
@@ -84,21 +86,21 @@ class PushNotificationsConfigForm extends ConfigFormBase {
       '#default_value' => $config_apns->get('stream_context_limit'),
     );
 
-    $form['apns']['passphrase'] = array(
+    $form['apns']['apns_passphrase'] = array(
       '#type' => 'textfield',
       '#title' => $this->t('Passphrase'),
       '#description' => $this->t('If your APNS certificate has a passphrase, enter it here. Otherwise, leave this field blank.'),
       '#default_value' => $config_apns->get('passphrase'),
     );
 
-    $form['apns']['push_notifications_apns_certificate_folder'] = array(
+    $form['apns']['apns_certificate_folder'] = array(
       '#type' => 'textfield',
       '#title' => $this->t('APNS Certificate Folder Path'),
       '#description' => $this->t('The preferred location for the certificate files is a folder outside of your web root, i.e. a folder not accessible through the Internet. Specify the full path here, e.g. \'/users/danny/drupal_install/certificates/\'. If you are using the \'certificates\' folder within the module directory, leave this field blank.'),
       '#default_value' => $config_apns->get('certificate_folder'),
     );
 
-    $form['apns']['push_notifications_set_entrust_certificate'] = array(
+    $form['apns']['apns_set_entrust_certificate'] = array(
       '#type' => 'checkbox',
       '#title' => $this->t('Set Entrust root certificate'),
       '#description' => t('If APNS does not work and you are getting errors like %php_error_string your server might be missing the Entrust root certificate. Enable this to explicitely add it when establishing a connection to APNS. See more in this <a href="@link_kb" target="_blank">Knowledgebase Article</a> and the <a href="@link_entrus" target="_blank">Entrust Root Certificate Downloads</a>', array(
@@ -116,7 +118,7 @@ class PushNotificationsConfigForm extends ConfigFormBase {
       '#description' => $this->t('Enter your Google Cloud Messaging details.'),
     );
 
-    $form['gcm']['api_key'] = array(
+    $form['gcm']['gcm_api_key'] = array(
       '#type' => 'textfield',
       '#title' => t('Google Cloud Messaging API Key'),
       '#description' => t('Enter the API key for your Google Cloud project'),
@@ -132,16 +134,34 @@ class PushNotificationsConfigForm extends ConfigFormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     parent::validateForm($form, $form_state);
+
+    // If custom certificate directory is set, ensure the directory exists.
+    $custom_dir = $form_state->getValue('apns_certificate_folder');
+    if (!empty($custom_dir)) {
+
+      if (!file_exists(Html::escape($custom_dir))) {
+        $form_state->setErrorByName('apns_certificate_folder', $this->t('Custom certificate directory does not exist. Please create the path before saving your configuration.'));
+      }
+    }
   }
 
   /**
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    parent::submitForm($form, $form_state);
+    // Store APNS config.
+    $config_apns = $this->config('push_notifications.apns');
+    $config_apns->set('environment', $form_state->getValue('apns_environment'));
+    $config_apns->set('stream_context_limit', $form_state->getValue('apns_stream_context_limit'));
+    $config_apns->set('passphrase', $form_state->getValue('apns_passphrase'));
+    $config_apns->set('certificate_folder', $form_state->getValue('apns_certificate_folder'));
+    $config_apns->set('set_entrust_certificate', $form_state->getValue('apns_set_entrust_certificate'));
+    $config_apns->save();
 
-    $this->config('push_notifications.PushNotificationsConfig')
-      ->save();
+    // Store GCM config.
+    $config_gcm = $this->config('push_notifications.gcm');
+    $config_gcm->set('api_key', $form_state->getValue('gcm_api_key'));
+    $config_gcm->save();
   }
 
 }
