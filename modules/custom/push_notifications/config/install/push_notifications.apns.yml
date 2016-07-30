@@ -1,6 +1,5 @@
 host: 'gateway.push.apple.com'
 certificate_random: ''
-certificate_base_name: ''
 notification_sound: 'default'
 query_feedback_service: TRUE
 stream_context_limit: 1

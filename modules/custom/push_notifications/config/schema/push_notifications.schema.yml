@@ -11,9 +11,6 @@ push_notifications.apns:
     certificate_random:
       type: string
       label: 'Random suffix for APNS certificate file'
-    certificate_base_name:
-      type: string
-      label: 'Base name for APNS certificate file'
     notification_sound:
       type: string
       label: 'Machine name for APNS notification sounds'
