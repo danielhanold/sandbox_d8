@@ -51,7 +51,11 @@ class PushNotificationsConfigForm extends ConfigFormBase {
     $form['apns'] = array(
       '#type' => 'fieldset',
       '#title' => $this->t('Apple Push Notifications'),
-      '#description' => $this->t('Configure Push Notifications for Apple\'s Push Notification Server. Select your environment. Both environments require the proper certificates in the \'certificates\' folder of this module.<br />The filename for the development certificate should be \':cert_name_development\', the production certificate should be \':cert_name_production\'. See <a href="@link" target="_blank">this link</a> for instructions on creating certificates.', $configuration_apns_replacements),
+    );
+
+    $form['apns']['instructions'] = array(
+      '#type' => 'markup',
+      '#markup' => $this->t('Configure Push Notifications for Apple\'s Push Notification Server. Select your environment. Both environments require the proper certificates in the \'certificates\' folder of this module.<br />The filename for the development certificate should be \':cert_name_development\', the production certificate should be \':cert_name_production\'. See <a href="@link" target="_blank">this link</a> for instructions on creating certificates.', $configuration_apns_replacements),
     );
 
     $form['apns']['regenerate_certificate_string_description'] = array(
@@ -63,7 +67,7 @@ class PushNotificationsConfigForm extends ConfigFormBase {
     $form['apns']['regenerate_certificate_string'] = array(
       '#type' => 'submit',
       '#value' => $this->t('Generate new certificate string'),
-      '#submit' => array('push_notifications_regenerate_certificate_string_submit'),
+      '#submit' => array('::submitRegenerateCertificateString'),
     );
 
     $form['apns']['apns_environment'] = array(
@@ -162,6 +166,14 @@ class PushNotificationsConfigForm extends ConfigFormBase {
     $config_gcm = $this->config('push_notifications.gcm');
     $config_gcm->set('api_key', $form_state->getValue('gcm_api_key'));
     $config_gcm->save();
+  }
+
+  /**
+   * Regenerates the APNS random certificate string.
+   */
+  public function submitRegenerateCertificateString(array &$form, FormStateInterface $form_state) {
+    push_notifications_set_random_certificate_string();
+    drupal_set_message($this->t('The names for your APNS certificates were successfully changed. Please rename both certificate files.'));
   }
 
 }
