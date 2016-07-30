@@ -40,7 +40,8 @@ function push_notifications_schema() {
       ),
       'type' => array(
         'description' => 'Network Type (APNS, GCM, etc.)',
-        'type' => 'int',
+        'type' => 'varchar',
+        'length' => '255',
         'not null' => TRUE,
       ),
       'timestamp' => array(

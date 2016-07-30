@@ -13,8 +13,8 @@ use Drupal\push_notifications\PushNotificationsMessageSenderList;
 /**
  * OS device types IDs.
  */
-const PUSH_NOTIFICATIONS_TYPE_ID_IOS = 0;
-const PUSH_NOTIFICATIONS_TYPE_ID_ANDROID = 1;
+const PUSH_NOTIFICATIONS_TYPE_ID_IOS = 'apns';
+const PUSH_NOTIFICATIONS_TYPE_ID_ANDROID = 'gcm';
 
 /**
  * APNS notification server port.

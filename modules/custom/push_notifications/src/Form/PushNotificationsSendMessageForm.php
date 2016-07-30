@@ -42,11 +42,13 @@ class PushNotificationsSendMessageForm extends FormBase {
     );
 
     // Only show Android option if GCM Api Key is available..
-    $recipients_options = array('ios' => t('iOS (Apple Push Notifications)'));
+    $recipients_options = array(
+      PUSH_NOTIFICATIONS_TYPE_ID_IOS => t('iOS (Apple Push Notifications)')
+    );
     if (!empty(\Drupal::config('push_notifications.gcm')->get('api_key'))) {
-      $recipients_options['android'] = t('Android (Google Cloud Messaging)');
+      $recipients_options[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID] = t('Android (Google Cloud Messaging)');
     }
-    $form['recipients'] = array(
+    $form['networks'] = array(
       '#type' => 'checkboxes',
       '#title' => t('Target Networks'),
       '#description' => t('Select the networks you want to reach with this message.'),
@@ -65,6 +67,13 @@ class PushNotificationsSendMessageForm extends FormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
+    // Make sure at least one network is selected.
+    $networks = $form_state->getValue('networks');
+    dpm($networks);
+    if (empty($networks)) {
+      $form_state->setErrorByName('networks', $this->t('No message was sent. Please select at least one recipient group.'));
+    }
+
     parent::validateForm($form, $form_state);
   }
 
@@ -72,10 +81,7 @@ class PushNotificationsSendMessageForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Display result.
-    foreach ($form_state->getValues() as $key => $value) {
-      drupal_set_message($key . ': ' . $value);
-    }
+
 
   }
 
