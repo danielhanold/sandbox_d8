@@ -13,6 +13,11 @@ namespace Drupal\push_notifications;
 class PushNotificationsBroadcasterGcm implements PushNotificationsBroadcasterInterface {
 
   /**
+   * GCM notification post URL.
+   */
+  const PUSH_NOTIFICATIONS_GCM_SERVER_POST_URL = 'https://android.googleapis.com/gcm/send';
+
+  /**
    * @var array $tokens
    *   List of tokens.
    */
@@ -144,7 +149,7 @@ class PushNotificationsBroadcasterGcm implements PushNotificationsBroadcasterInt
     $data['data']['message'] = $this->paylod['alert'];
 
     $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, 'https://android.googleapis.com/gcm/send');
+    curl_setopt($curl, CURLOPT_URL, PUSH_NOTIFICATIONS_GCM_SERVER_POST_URL);
     curl_setopt($curl, CURLOPT_HTTPHEADER, $this->getHeaders());
     curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
     curl_setopt($curl, CURLOPT_POST, TRUE);

@@ -29,21 +29,20 @@ class PushNotificationsDispatcher {
   }
 
   /**
-   * Send payload.
+   * Dispatch message.
    */
-  public function sendPayload() {
+  public function dispatch() {
     // Send payload to iOS recipients.
     if (!empty($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_IOS])) {
       try {
         $apnsBroadcaster = \Drupal::service('push_notifications.broadcaster_apns');
-        // TODO
-        // Convert the payload into the correct format for APNS.
-        // $payload_apns = array('aps' => $this->payload);
         $apnsBroadcaster->setTokens($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_IOS]);
-        $apnsBroadcaster->setPayload($this->payload);
+        $apnsBroadcaster->setMessage($this->message);
+        $apnsBroadcaster->sendBroadcast();
         $results = $apnsBroadcaster->getResults();
         // TODO: Log results.
       } catch (\Exception $e) {
+        //drupal_set_message(t('Your message could not be sent. Please check the log for details.'), 'error');
         \Drupal::logger('push_notifications')->error($e->getMessage());
       }
     }
@@ -53,10 +52,11 @@ class PushNotificationsDispatcher {
       try {
         $broadcaster_gcm = \Drupal::service('push_notifications.broadcaster_gcm');
         $broadcaster_gcm->setTokens($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID]);
-        $broadcaster_gcm->setPayload($this->payload);
+        $broadcaster_gcm->setMessage($this->message);
         $results = $broadcaster_gcm->getResults();
         // TODO: Log result message.
       } catch (\Exception $e) {
+        drupal_set_message(t('Your message could not be sent. Please check the log for details.'), 'error');
         \Drupal::logger('push_notifications')->error($e->getMessage());
       }
     }
@@ -76,7 +76,7 @@ class PushNotificationsDispatcher {
    *
    * @param mixed $message
    */
-  public function setPayload($message) {
+  public function setMessage($message) {
     $this->message = $message;
   }
 

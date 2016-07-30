@@ -13,6 +13,11 @@ namespace Drupal\push_notifications;
 class PushNotificationsBroadcasterApns implements PushNotificationsBroadcasterInterface{
 
   /**
+   * APNS notification server port.
+   */
+  const PUSH_NOTIFICATIONS_APNS_PORT = 2195;
+
+  /**
    * @var array $tokens
    *   List of tokens.
    */
@@ -66,14 +71,26 @@ class PushNotificationsBroadcasterApns implements PushNotificationsBroadcasterIn
    */
   private $config;
 
+  /**
+   * @var string $gateway
+   *   APNS gateway.
+   */
+  private $gateway;
 
   /**
    * Constructor.
    */
   public function __construct() {
     dpm('Apns Alert Dispatcher');
+
+    // Load configuration.
     $this->config = \Drupal::config('push_notifications.apns');
+
+    // Determine certificate path.
     $this->determineCertificatePath();
+
+    // Determine correct gateway.
+    $this->determineGateway();
   }
 
   /**
@@ -92,6 +109,27 @@ class PushNotificationsBroadcasterApns implements PushNotificationsBroadcasterIn
    */
   public function setMessage($message) {
     $this->message = $message;
+
+    // Set the payload.
+    $this->payload = array(
+      'aps' => array(
+        'alert' => $message,
+      ),
+    );
+  }
+
+  /**
+   * Determine the correct gateway.
+   */
+  private function determineGateway() {
+    switch ($this->config->get('environment')) {
+      case 'development':
+        $this->gateway = 'gateway.sandbox.push.apple.com';
+        break;
+      case 'production':
+        $this->gateway = 'gateway.push.apple.com';
+        break;
+    }
   }
 
   /**
@@ -114,7 +152,7 @@ class PushNotificationsBroadcasterApns implements PushNotificationsBroadcasterIn
     }
 
     // Open an Internet socket connection.
-    $this->apns = stream_socket_client('ssl://' . PUSH_NOTIFICATIONS_APNS_HOST . ':' . PUSH_NOTIFICATIONS_APNS_PORT, $error, $error_string, 2, STREAM_CLIENT_CONNECT, $stream_context);
+    $this->apns = stream_socket_client('ssl://' . $this->gateway . ':' . self::PUSH_NOTIFICATIONS_APNS_PORT, $error, $error_string, 2, STREAM_CLIENT_CONNECT, $stream_context);
     if (!$this->apns) {
       throw new \Exception('APNS connection could not be established. Check to make sure you are using a valid certificate file.');
     }
@@ -156,9 +194,13 @@ class PushNotificationsBroadcasterApns implements PushNotificationsBroadcasterIn
    *   Array of tokens and payload necessary to send out a broadcast.
    */
   public function sendBroadcast() {
+    //die(kint($this));
     if (empty($this->tokens) || empty($this->payload)) {
       throw new \Exception('No tokens or payload set.');
     }
+
+    // JSON-encode the payload.
+    $payload = json_encode($this->payload);
 
     // Send a push notification to every recipient.
     $stream_counter = 0;
@@ -170,7 +212,7 @@ class PushNotificationsBroadcasterApns implements PushNotificationsBroadcasterIn
       $stream_counter++;
 
       $this->countAttempted++;
-      $apns_message = chr(0) . chr(0) . chr(32) . pack('H*', $token) . pack('n', strlen($this->paylod)) . $this->paylod;
+      $apns_message = chr(0) . chr(0) . chr(32) . pack('H*', $token) . pack('n', strlen($payload)) . $payload;
       // Write the payload to the currently active streaming connection.
       $success = fwrite($this->apns, $apns_message);
       if ($success) {
@@ -187,7 +229,7 @@ class PushNotificationsBroadcasterApns implements PushNotificationsBroadcasterIn
       // be sent with the current stream context.
       // This results in the generation of a new stream context
       // at the beginning of this loop.
-      if ($stream_counter >= PUSH_NOTIFICATIONS_APNS_STREAM_CONTEXT_LIMIT) {
+      if ($stream_counter >= $this->config->get('stream_context_limit')) {
         $stream_counter = 0;
         if (is_resource($this->apns)) {
           fclose($this->apns);

@@ -22,13 +22,6 @@ abstract class PushNotificationsMessageSenderBase{
   protected $message;
 
   /**
-   * The payload containing the message.
-   *
-   * @var array $payload.
-   */
-  protected $payload;
-
-  /**
    * List of user tokens.
    *
    * @var array $tokens
@@ -103,10 +96,10 @@ abstract class PushNotificationsMessageSenderBase{
       return false;
     }
 
-    // Generate and dispatch payload.
-    $this->dispatcher->setPayload(array('alert' => $this->message));
+    // Generate and dispatch message.
+    $this->dispatcher->setMessage($this->message);
     $this->dispatcher->setTokens($this->tokens);
-    $this->dispatcher->sendPayload();
+    $this->dispatcher->dispatch();
   }
 
 }
