@@ -5,15 +5,9 @@
  * Contains \Drupal\push_notifications\PushNotificationsBroadcasterInterface.
  */
 
-interface PushNotificationsBroadcasterInterface {
+namespace Drupal\push_notifications;
 
-  /**
-   * Broadcast message.
-   *
-   * @param array $tokens Token list.
-   * @param array $payload Payload to be sent.
-   */
-  function broadcastMessage();
+interface PushNotificationsBroadcasterInterface {
 
   /**
    * Set tokens.
@@ -27,7 +21,7 @@ interface PushNotificationsBroadcasterInterface {
    *
    * @param array $payload Payload.
    */
-  function setPaylod($payload);
+  function setMessage($payload);
 
   /**
    * Send the broadcast.

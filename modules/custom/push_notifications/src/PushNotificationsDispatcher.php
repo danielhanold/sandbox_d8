@@ -2,15 +2,15 @@
 
 /**
  * @file
- * Contains \Drupal\push_notifications\PushNotificationsAlertDispatcher.
+ * Contains \Drupal\push_notifications\PushNotificationsDispatcher.
  */
 
 namespace Drupal\push_notifications;
 
 /**
- * Handles delivery of simple notification alert.
+ * Handles dispatching of messages.
  */
-class PushNotificationsAlertDispatcher {
+class PushNotificationsDispatcher {
 
   /**
    * Array of tokens grouped by type.
@@ -18,9 +18,9 @@ class PushNotificationsAlertDispatcher {
   protected $tokens = array();
 
   /**
-   * Message payload.
+   * Message.
    */
-  protected $payload;
+  protected $message;
 
   /**
    * Constructor.
@@ -34,23 +34,31 @@ class PushNotificationsAlertDispatcher {
   public function sendPayload() {
     // Send payload to iOS recipients.
     if (!empty($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_IOS])) {
-      $apnsBroadcaster = \Drupal::service('push_notifications.broadcaster_apns');
-      // TODO
-      // Convert the payload into the correct format for APNS.
-      // $payload_apns = array('aps' => $this->payload);
-      $apnsBroadcaster->setTokens($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_IOS]);
-      $apnsBroadcaster->setPayload($this->payload);
-      $results = $apnsBroadcaster->getResults();
-      // TODO: Log results.
+      try {
+        $apnsBroadcaster = \Drupal::service('push_notifications.broadcaster_apns');
+        // TODO
+        // Convert the payload into the correct format for APNS.
+        // $payload_apns = array('aps' => $this->payload);
+        $apnsBroadcaster->setTokens($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_IOS]);
+        $apnsBroadcaster->setPayload($this->payload);
+        $results = $apnsBroadcaster->getResults();
+        // TODO: Log results.
+      } catch (\Exception $e) {
+        \Drupal::logger('push_notifications')->error($e->getMessage());
+      }
     }
 
     // Send payload to Android recipients.
     if (!empty($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID])) {
-      $broadcaster_gcm = \Drupal::service('push_notifications.broadcaster_gcm');
-      $broadcaster_gcm->setTokens($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID]);
-      $broadcaster_gcm->setPayload($this->payload);
-      $results = $broadcaster_gcm->getResults();
-      // TODO: Log result message.
+      try {
+        $broadcaster_gcm = \Drupal::service('push_notifications.broadcaster_gcm');
+        $broadcaster_gcm->setTokens($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID]);
+        $broadcaster_gcm->setPayload($this->payload);
+        $results = $broadcaster_gcm->getResults();
+        // TODO: Log result message.
+      } catch (\Exception $e) {
+        \Drupal::logger('push_notifications')->error($e->getMessage());
+      }
     }
   }
 
@@ -64,12 +72,12 @@ class PushNotificationsAlertDispatcher {
   }
 
   /**
-   * Setter method for payload.
+   * Setter method for message.
    *
-   * @param mixed $payload
+   * @param mixed $message
    */
-  public function setPayload($payload) {
-    $this->payload = $payload;
+  public function setPayload($message) {
+    $this->message = $message;
   }
 
   /**

@@ -7,12 +7,10 @@
 
 namespace Drupal\push_notifications;
 
-use Drupal\push_notifications\PushNotificationsBroadcasterInterface;
-
 /**
  * Broadcasts Android messages.
  */
-class PushNotificationsBroadcasterApns implements PushNotificationsBroadcasterInterface {
+class PushNotificationsBroadcasterApns implements PushNotificationsBroadcasterInterface{
 
   /**
    * @var array $tokens
@@ -88,12 +86,12 @@ class PushNotificationsBroadcasterApns implements PushNotificationsBroadcasterIn
   }
 
   /**
-   * Setter function for payload.
+   * Setter function for message.
    *
-   * @param $payload
+   * @param $message
    */
-  public function setPayload($payload) {
-    $this->payload = $payload;
+  public function setMessage($message) {
+    $this->message = $message;
   }
 
   /**
@@ -118,7 +116,6 @@ class PushNotificationsBroadcasterApns implements PushNotificationsBroadcasterIn
     // Open an Internet socket connection.
     $this->apns = stream_socket_client('ssl://' . PUSH_NOTIFICATIONS_APNS_HOST . ':' . PUSH_NOTIFICATIONS_APNS_PORT, $error, $error_string, 2, STREAM_CLIENT_CONNECT, $stream_context);
     if (!$this->apns) {
-      \Drupal::logger('push_notifications')->error("Could not establish connection to Apple Notification Server failed.");
       throw new \Exception('APNS connection could not be established. Check to make sure you are using a valid certificate file.');
     }
   }
@@ -144,10 +141,9 @@ class PushNotificationsBroadcasterApns implements PushNotificationsBroadcasterIn
     $path .= push_notifications_get_certificate_name($this->config->get('environment'));
 
     if (!file_exists($path)) {
-      \Drupal::logger('push_notifications')->error("Cannot find apns certificate file at @path", array(
+      throw new \Exception(t("Cannot find apns certificate file at @path", array(
         '@path' => $path,
-      ));
-      throw new \Exception('Could not find APNS certificate at given path.');
+      )));
     }
 
     $this->certificate_path = $path;

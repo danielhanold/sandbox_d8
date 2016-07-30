@@ -22,10 +22,10 @@ class PushNotificationsMessageSenderList extends PushNotificationsMessageSenderB
   /**
    * Constructor.
    *
-   * @param \Drupal\push_notifications\PushNotificationsAlertDispatcher $dispatcher
+   * @param \Drupal\push_notifications\PushNotificationsDispatcher $dispatcher
    *   Alert Dispatcher.
    */
-  public function __construct(PushNotificationsAlertDispatcher $dispatcher) {
+  public function __construct(PushNotificationsDispatcher $dispatcher) {
     $this->dispatcher = $dispatcher;
   }
 

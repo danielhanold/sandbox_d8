@@ -6,7 +6,6 @@
  */
 
 namespace Drupal\push_notifications;
-use Drupal\push_notifications\PushNotificationsBroadcasterInterface;
 
 /**
  * Broadcasts Android messages.
@@ -72,12 +71,12 @@ class PushNotificationsBroadcasterGcm implements PushNotificationsBroadcasterInt
   }
 
   /**
-   * Setter function for payload.
+   * Setter function for message.
    *
-   * @param $payload
+   * @param $message
    */
-  public function setPayload($payload) {
-    $this->payload = $payload;
+  public function setMessage($message) {
+    $this->message = $message;
   }
 
   /**

@@ -1,12 +1,10 @@
 services:
-  push_notifications.alert_dispatcher:
-    class: Drupal\push_notifications\PushNotificationsAlertDispatcher
+  push_notifications.dispatcher:
+    class: Drupal\push_notifications\PushNotificationsDispatcher
   push_notifications.broadcaster_gcm:
     class: Drupal\push_notifications\PushNotificationsBroadcasterGcm
   push_notifications.broadcaster_apns:
     class: Drupal\push_notifications\PushNotificationsBroadcasterApns
-  push_notifications.alert_dispatcher_android:
-    class: Drupal\push_notifications\PushNotificationsAlertDispatcherAndroid
   push_notifications.message_sender_list:
     class: Drupal\push_notifications\PushNotificationsMessageSenderList
-    arguments: ['@push_notifications.alert_dispatcher']
+    arguments: ['@push_notifications.dispatcher']
