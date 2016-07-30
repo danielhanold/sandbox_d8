@@ -39,7 +39,7 @@ function push_notifications_schema() {
         'not null' => TRUE,
       ),
       'type' => array(
-        'description' => 'Device Type (iPhone, Android)',
+        'description' => 'Network Type (APNS, GCM, etc.)',
         'type' => 'int',
         'not null' => TRUE,
       ),
