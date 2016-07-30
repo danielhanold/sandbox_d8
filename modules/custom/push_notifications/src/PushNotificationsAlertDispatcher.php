@@ -46,10 +46,10 @@ class PushNotificationsAlertDispatcher {
 
     // Send payload to Android recipients.
     if (!empty($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID])) {
-      $androidBroadcaster = \Drupal::service('push_notifications.broadcaster_android');
-      $androidBroadcaster->setTokens($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID]);
-      $androidBroadcaster->setPayload($this->payload);
-      $results = $androidBroadcaster->getResults();
+      $broadcaster_gcm = \Drupal::service('push_notifications.broadcaster_gcm');
+      $broadcaster_gcm->setTokens($this->tokens[PUSH_NOTIFICATIONS_TYPE_ID_ANDROID]);
+      $broadcaster_gcm->setPayload($this->payload);
+      $results = $broadcaster_gcm->getResults();
       // TODO: Log result message.
     }
   }

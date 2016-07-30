@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\push_notifications\PushNotificationsBroadcasterAndroid.
+ * Contains \Drupal\push_notifications\PushNotificationsBroadcasterGcm.
  */
 
 namespace Drupal\push_notifications;
@@ -11,7 +11,7 @@ use Drupal\push_notifications\PushNotificationsBroadcasterInterface;
 /**
  * Broadcasts Android messages.
  */
-class PushNotificationsBroadcasterAndroid implements PushNotificationsBroadcasterInterface {
+class PushNotificationsBroadcasterGcm implements PushNotificationsBroadcasterInterface {
 
   /**
    * @var array $tokens
