@@ -3,6 +3,8 @@ services:
     class: Drupal\push_notifications\PushNotificationsAlertDispatcher
   push_notifications.broadcaster_android:
     class: Drupal\push_notifications\PushNotificationsBroadcasterAndroid
+  push_notifications.broadcaster_apns:
+    class: Drupal\push_notifications\PushNotificationsBroadcasterApns
   push_notifications.alert_dispatcher_android:
     class: Drupal\push_notifications\PushNotificationsAlertDispatcherAndroid
   push_notifications.message_sender_list:

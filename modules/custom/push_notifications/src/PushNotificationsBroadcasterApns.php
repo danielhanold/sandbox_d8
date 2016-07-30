@@ -2,16 +2,17 @@
 
 /**
  * @file
- * Contains \Drupal\push_notifications\PushNotificationsBroadcasterAndroid.
+ * Contains \Drupal\push_notifications\PushNotificationsBroadcasterApns.
  */
 
 namespace Drupal\push_notifications;
+
 use Drupal\push_notifications\PushNotificationsBroadcasterInterface;
 
 /**
  * Broadcasts Android messages.
  */
-class PushNotificationsBroadcasterAndroid implements PushNotificationsBroadcasterInterface {
+class PushNotificationsBroadcasterApns implements PushNotificationsBroadcasterInterface {
 
   /**
    * @var array $tokens
@@ -50,16 +51,31 @@ class PushNotificationsBroadcasterAndroid implements PushNotificationsBroadcaste
   protected $message;
 
   /**
-   * @var int $tokenBundles
-   *   Number of token bundles.
+   * @var stream $apns
+   *   APNS connection.
    */
-  private $tokenBundles;
+  protected $apns;
+
+  /**
+   * @var string $certificate_path
+   *   Absolute certificate path.
+   */
+  private $certificate_path;
+
+  /**
+   * @var object $config
+   *   APNS configuration object.
+   */
+  private $config;
+
 
   /**
    * Constructor.
    */
   public function __construct() {
-    dpm('Android Alert Dispatcher');
+    dpm('Apns Alert Dispatcher');
+    $this->config = \Drupal::config('push_notifications.apns');
+    $this->determineCertificatePath();
   }
 
   /**
@@ -81,6 +97,63 @@ class PushNotificationsBroadcasterAndroid implements PushNotificationsBroadcaste
   }
 
   /**
+   * Open a stream connection to APNS.
+   * Should be closed by calling fclose($connection) after usage.
+   */
+  private function openConnection() {
+    // Create a stream context.
+    $stream_context = stream_context_create();
+
+    // Set options on the stream context.
+    stream_context_set_option($stream_context, 'ssl', 'local_cert', $this->certificate_path);
+
+    // If the user has a passphrase stored, we use it.
+    if (strlen($this->config->get('passphrase'))) {
+      stream_context_set_option($stream_context, 'ssl', 'passphrase', $this->config->get('passphrase'));
+    }
+    if ($this->config->get('set_entrust_certificate')) {
+      stream_context_set_option($stream_context, 'ssl', 'CAfile', drupal_get_path('module', 'push_notifications') . '/certificates/entrust_2048_ca.cer');
+    }
+
+    // Open an Internet socket connection.
+    $this->apns = stream_socket_client('ssl://' . PUSH_NOTIFICATIONS_APNS_HOST . ':' . PUSH_NOTIFICATIONS_APNS_PORT, $error, $error_string, 2, STREAM_CLIENT_CONNECT, $stream_context);
+    if (!$this->apns) {
+      \Drupal::logger('push_notifications')->error("Could not establish connection to Apple Notification Server failed.");
+      throw new \Exception('APNS connection could not be established. Check to make sure you are using a valid certificate file.');
+    }
+  }
+
+  /**
+   * Determine the realpath to the APNS certificate.
+   *
+   * @see http://stackoverflow.com/questions/809682
+   * @throws \Exception
+   *   Certificate file needs to be set
+   */
+  private function determineCertificatePath() {
+    // Determine if custom path is set.
+    $path = $this->config->get('certificate_folder');
+
+    // If no custom path is set, get module directory.
+    if (empty($path)) {
+      $path = drupal_realpath(drupal_get_path('module', 'push_notifications'));
+      $path .= DIRECTORY_SEPARATOR . 'certificates' . DIRECTORY_SEPARATOR;
+    }
+
+    // Append name of certificate.
+    $path .= push_notifications_get_certificate_name($this->config->get('environment'));
+
+    if (!file_exists($path)) {
+      \Drupal::logger('push_notifications')->error("Cannot find apns certificate file at @path", array(
+        '@path' => $path,
+      ));
+      throw new \Exception('Could not find APNS certificate at given path.');
+    }
+
+    $this->certificate_path = $path;
+  }
+
+  /**
    * Send the broadcast message.
    *
    * @throws \Exception
@@ -91,18 +164,46 @@ class PushNotificationsBroadcasterAndroid implements PushNotificationsBroadcaste
       throw new \Exception('No tokens or payload set.');
     }
 
-    // Set token bundles.
-    $this->tokenBundles = ceil(count($this->tokens) / 1000);
+    // Send a push notification to every recipient.
+    $stream_counter = 0;
+    foreach ($this->tokens as $token) {
+      // Open an apns connection, if necessary.
+      if ($stream_counter == 0) {
+        $this->openConnection();
+      }
+      $stream_counter++;
 
-    // Set number of tokens to attempt.
-    $this->countAttempted = count($this->tokens);
+      $this->countAttempted++;
+      $apns_message = chr(0) . chr(0) . chr(32) . pack('H*', $token) . pack('n', strlen($this->paylod)) . $this->paylod;
+      // Write the payload to the currently active streaming connection.
+      $success = fwrite($this->apns, $apns_message);
+      if ($success) {
+        $this->countSuccess++;
+      }
+      elseif ($success == 0 || $success == FALSE || $success < strlen($apns_message)) {
+        \Drupal::logger('push_notifications')->notice("APNS message could not be sent. Token: @token. fwrite returned @success_message", array(
+          '@token' => $token,
+          '@success_message' => $success,
+        ));
+      }
 
-    // Send notifications in slices of 1000
-    // and process the results.
-    for ($i = 0; $i < $this->tokenBundles; $i++) {
-      $bundledTokens = array_slice($this->tokens, $i * 1000, 1000, FALSE);
-      $result = $this->sendTokenBundle($bundledTokens);
-      $this->processResult($result, $bundledTokens);
+      // Reset the stream counter if no more messages should
+      // be sent with the current stream context.
+      // This results in the generation of a new stream context
+      // at the beginning of this loop.
+      if ($stream_counter >= PUSH_NOTIFICATIONS_APNS_STREAM_CONTEXT_LIMIT) {
+        $stream_counter = 0;
+        if (is_resource($this->apns)) {
+          fclose($this->apns);
+        }
+      }
+    }
+
+    // Close the apns connection if it hasn't already been closed.
+    // Need to check if $apns is a resource, as pointer will not
+    // be closed by fclose.
+    if (is_resource($this->apns)) {
+      fclose($this->apns);
     }
 
     // Mark success as true.
@@ -114,7 +215,7 @@ class PushNotificationsBroadcasterAndroid implements PushNotificationsBroadcaste
    */
   public function getResults() {
     return array(
-      'type_id' => PUSH_NOTIFICATIONS_TYPE_ID_ANDROID,
+      'type_id' => PUSH_NOTIFICATIONS_TYPE_ID_IOS,
       'payload' => $this->payload,
       'count_attempted' => $this->countAttempted,
       'count_success' => $this->countSuccess,
@@ -122,95 +223,4 @@ class PushNotificationsBroadcasterAndroid implements PushNotificationsBroadcaste
     );
   }
 
-  /**
-   * Send a token bundle.
-   *
-   * @param array $tokens
-   *   Array of tokens.
-   * @returns array
-   *   Returns return of curl info and response from GCM.
-   */
-  private function sendTokenBundle($tokens) {
-    // Convert the payload into the correct format for payloads.
-    // Prefill an array with values from other modules first.
-    $data = array();
-    foreach ($this->payload as $key => $value) {
-      if ($key != 'alert') {
-        $data['data'][$key] = $value;
-      }
-    }
-    // Fill the default values required for each payload.
-    $data['registration_ids'] = $tokens;
-    $data['collapse_key'] = (string) time();
-    $data['data']['message'] = $this->paylod['alert'];
-
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, 'https://android.googleapis.com/gcm/send');
-    curl_setopt($curl, CURLOPT_HTTPHEADER, $this->getHeaders());
-    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-    curl_setopt($curl, CURLOPT_POST, TRUE);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
-    $response_raw = curl_exec($curl);
-    $info = curl_getinfo($curl);
-    curl_close($curl);
-
-    $response = FALSE;
-    if (isset($response_raw)) {
-      $response = json_decode($response_raw);
-    }
-
-    return array(
-      'info' => $info,
-      'response' => $response,
-      'response_raw' => $response_raw,
-    );
-  }
-
-  /**
-   * Process the a batch result.
-   *
-   * @param array $result
-   *   Result of a bundle process, containing the curl info, reponse, and raw response.
-   * @param array $tokens
-   *   Tokens bundle that was processed.
-   */
-  private function processResult($result, $tokens) {
-    // If Google returns a reply, but that reply includes an error,
-    // log the error message.
-    if ($result['info']['http_code'] == 200 && (!empty($result['response']->failure))) {
-      \Drupal::logger('push_notifications')->notice("Google's Server returned an error: @response_raw", array(
-        '@response_raw' => $result['response_raw'],
-      ));
-
-      // Analyze the failure.
-      foreach ($result['response']->results as $token_index => $message_result) {
-        if (!empty($message_result->error)) {
-          // If the device token is invalid or not registered (anymore because the user
-          // has uninstalled the application), remove this device token.
-          if ($message_result->error == 'NotRegistered' || $message_result->error == 'InvalidRegistration') {
-            push_notifications_purge_token($tokens[$token_index], PUSH_NOTIFICATIONS_TYPE_ID_ANDROID);
-            \Drupal::logger('push_notifications')->notice("GCM token not valid anymore. Removing token @token", array(
-              '@$token' => $tokens[$token_index],
-            ));
-          }
-        }
-      }
-    }
-
-    // Count the successful sent push notifications if there are any.
-    if ($result['info']['http_code'] == 200 && !empty($result['response']->success)) {
-      $this->countSuccess += $result['response']->success;
-    }
-  }
-
-  /**
-   * Get the headers for sending broadcast.
-   */
-  private function getHeaders() {
-    $headers = array();
-    $headers[] = 'Content-Type:application/json';
-    $headers[] = 'Authorization:key=' . \Drupal::config('push_notifications.gcm')->get('api_key');
-    return $headers;
-  }
 }
