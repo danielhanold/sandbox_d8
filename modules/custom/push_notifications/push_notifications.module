@@ -54,16 +54,12 @@ function push_notifications_help($route_name, RouteMatchInterface $route_match) 
       $PushHandler->setMessage('This is my test payload.');
       $PushHandler->dispatch();
 
-      $doc_url = Url::fromUri('https://www.drupal.org/node/2718063', array(
-        'attributes' => array(
-          'target' => '_blank',
-        ),
-      ));
-      $doc_link = Link::fromTextAndUrl('Book admin', $doc_url);
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('Push notification functionality for iPhone and Android.') . '</p>';
-      $output .= '<p>' . t('The full documentation is available online: @doc_link.', array('@doc_link' => $doc_link->toString())) . '</p>';
+      $output .= '<p>' . t('The full documentation is available online: <a href="@doc_url" target="_blank">Documentation</a >.', array(
+        '@doc_url' => 'https://www.drupal.org/node/2718063'
+        )) . '</p>';
       return $output;
   }
 }

@@ -69,9 +69,8 @@ class PushNotificationsSendMessageForm extends FormBase {
   public function validateForm(array &$form, FormStateInterface $form_state) {
     // Make sure at least one network is selected.
     $networks = $form_state->getValue('networks');
-    dpm($networks);
-    if (empty($networks)) {
-      $form_state->setErrorByName('networks', $this->t('No message was sent. Please select at least one recipient group.'));
+    if (empty(array_filter($networks))) {
+      $form_state->setErrorByName('networks', $this->t('Please select at least one of the target networks.'));
     }
 
     parent::validateForm($form, $form_state);
@@ -81,7 +80,6 @@ class PushNotificationsSendMessageForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-
 
   }
 
