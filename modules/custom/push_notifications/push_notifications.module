@@ -60,6 +60,10 @@ function push_notifications_help($route_name, RouteMatchInterface $route_match) 
       $output .= '<p>' . t('The full documentation is available online: <a href="@doc_url" target="_blank">Documentation</a >.', array(
         '@doc_url' => 'https://www.drupal.org/node/2718063'
         )) . '</p>';
+
+      $output .= '<p>' . t('You can manually send out a push notification @message_link.', array(
+          '@message_link' => Link::createFromRoute('from the admin section', 'push_notifications.send_message_form')->toString(),
+        )) . '</p>';
       return $output;
   }
 }
