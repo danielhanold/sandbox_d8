@@ -1,0 +1,3 @@
+[submodule "modules/custom/push_notifications"]
+	path = modules/custom/push_notifications
+	url = haagendazs@git.drupal.org:project/push_notifications.git

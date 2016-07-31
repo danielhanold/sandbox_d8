@@ -51,5 +51,3 @@ php_errors.log
 # OSX Files.
 .DS_Store
 
-# Certificate files.
-modules/custom/push_notifications/certificates/apns*
