@@ -1,17 +1,13 @@
 <?php
-/**
- * @file
- * Contains \Drupal\restui\Controller\RestUIController.
- */
 
 namespace Drupal\restui\Controller;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Drupal\rest\Plugin\Type\ResourcePluginManager;
-use Drupal\restui\RestUIManager;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Routing\RouteBuilderInterface;
 use Drupal\Core\Url;
@@ -20,13 +16,6 @@ use Drupal\Core\Url;
  * Controller routines for REST resources.
  */
 class RestUIController implements ContainerInjectionInterface {
-
-  /**
-   * Rest UI Manager Service.
-   *
-   * @var \Drupal\restui\RestUIManager
-   */
-  protected $restUIManager;
 
   /**
    * Resource plugin manager.
@@ -54,7 +43,6 @@ class RestUIController implements ContainerInjectionInterface {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('restui.manager'),
       $container->get('plugin.manager.rest'),
       $container->get('url_generator'),
       $container->get('router.builder')
@@ -63,9 +51,15 @@ class RestUIController implements ContainerInjectionInterface {
 
   /**
    * Constructs a RestUIController object.
+   *
+   * @param \Drupal\rest\Plugin\Type\ResourcePluginManager $resourcePluginManager
+   *   The REST resource plugin manager.
+   * @param \Symfony\Component\Routing\Generator\UrlGeneratorInterface $url_generator
+   *   The URL generator.
+   * @param \Drupal\Core\Routing\RouteBuilderInterface $routeBuilder
+   *   The router builder.
    */
-  public function __construct(RestUIManager $restUIManager, ResourcePluginManager $resourcePluginManager, UrlGeneratorInterface $url_generator, RouteBuilderInterface $routeBuilder) {
-    $this->restUIManager = $restUIManager;
+  public function __construct(ResourcePluginManager $resourcePluginManager, UrlGeneratorInterface $url_generator, RouteBuilderInterface $routeBuilder) {
     $this->resourcePluginManager = $resourcePluginManager;
     $this->urlGenerator = $url_generator;
     $this->routeBuilder= $routeBuilder;
@@ -76,7 +70,6 @@ class RestUIController implements ContainerInjectionInterface {
    *
    * @return string
    *   A HTML-formatted string with the administrative page content.
-   *
    */
   public function listResources() {
     // Get the list of enabled and disabled resources.
@@ -177,8 +170,12 @@ class RestUIController implements ContainerInjectionInterface {
               ),
               'disable' => array(
                 'title' => t('Disable'),
-                'url' => Url::fromRoute('restui.disable', array('resource_id' => $id), array('query' => array('token' => \Drupal::csrfToken()->get('restui_disable')))),
+                'url' => Url::fromRoute('restui.disable', array('resource_id' => $id)),
               ),
+              'permissions' => array(
+                'title' => t('Permissions'),
+                'url' => Url::fromRoute('user.admin_permissions', array(), array('fragment' => 'module-rest')),
+              )
             ),
           );
 
@@ -201,8 +198,6 @@ class RestUIController implements ContainerInjectionInterface {
    *
    * @param string $resource_id
    *   The identifier or the REST resource.
-   * @param \Symfony\Component\HttpFoundation\Request $request
-   *   The current request.
    *
    * @return \Drupal\Core\Ajax\AjaxResponse|\Symfony\Component\HttpFoundation\RedirectResponse
    *   Redirects back to the listing page.
@@ -210,14 +205,10 @@ class RestUIController implements ContainerInjectionInterface {
    * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
    *   Access is denied, if the token is invalid or missing.
    */
-  public function disable($resource_id, Request $request) {
-    if (!\Drupal::csrfToken()->validate($request->query->get('token'), 'restui_disable')) {
-      throw new AccessDeniedHttpException();
-    }
-
+  public function disable($resource_id) {
     $config = \Drupal::configFactory()->getEditable('rest.settings');
     $resources = $config->get('resources') ?: array();
-    $plugin = $this->resourcePluginManager->getInstance(array('id' => $resource_id));
+    $plugin = $this->resourcePluginManager->createInstance($resource_id);
     if (!empty($plugin)) {
       // disable the resource.
       unset($resources[$resource_id]);

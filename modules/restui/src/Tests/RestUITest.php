@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\restui\Tests\RestUITest.
- */
 
 namespace Drupal\restui\Tests;
 
@@ -48,7 +44,7 @@ class RestUITest extends WebTestBase {
       'methods[PATCH][PATCH]' => FALSE,
     );
     $this->drupalPostForm('admin/config/services/rest/resource/entity%3Anode/edit', $values, 'Save configuration');
-    $this->assertText(t('The resource was updated successfully.'));
+    $this->assertText(t('The resource has been updated.'));
   }
 
 }
