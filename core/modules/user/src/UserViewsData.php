@@ -15,8 +15,6 @@ class UserViewsData extends EntityViewsData {
   public function getViewsData() {
     $data = parent::getViewsData();
 
-
-
     $data['users_field_data']['table']['base']['help'] = $this->t('Users who have created accounts on your site.');
     $data['users_field_data']['table']['base']['access query tag'] = 'user_access';
 
